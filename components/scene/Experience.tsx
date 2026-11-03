@@ -180,6 +180,7 @@ export default function Experience() {
   const setNearbyActivity = useAppStore((s) => s.setNearbyActivity);
   const openQt = useAppStore((s) => s.openQt);
   const closeQt = useAppStore((s) => s.closeQt);
+  const qtOpen = useAppStore((s) => s.qtOpen);
 
   const interactPrevRef = useRef(false);
   const nearbyRef = useRef<string | null>(null);
@@ -311,7 +312,9 @@ export default function Experience() {
     // interact key (edge-triggered), keyboard E or the on-screen touch button
     const interactPressed = k.interact || touchInput.interact;
     if (interactPressed && !interactPrevRef.current) {
-      if (activity === "praying") {
+      if (qtOpen) {
+        // closes the prayer modal; closeQt() returns to "sitting" if that's
+        // the pose it was opened from, so E always means "one step back"
         closeQt();
       } else if (activity) {
         setActivity(null);

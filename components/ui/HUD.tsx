@@ -131,7 +131,10 @@ export default function HUD() {
         <div className="absolute top-1/2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/50" />
       )}
 
-      {touch && !anyModalOpen && !activity && <MobileControls />}
+      {/* the E button stays up even while sitting/resting/praying, since
+          that's the only way to stand back up or close the prayer on
+          touch - only the joystick hides itself (movement is frozen then) */}
+      {touch && !anyModalOpen && <MobileControls showJoystick={!activity} />}
 
       {customizeOpen && <CustomizePanel />}
       {qtOpen && <QTModal />}

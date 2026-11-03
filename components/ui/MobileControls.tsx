@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { touchInput } from "@/lib/touchInput";
 
 const JOYSTICK_RADIUS = 48; // px the knob can travel from center
 
-export default function MobileControls() {
+export default function MobileControls({ showJoystick }: { showJoystick: boolean }) {
   const baseRef = useRef<HTMLDivElement>(null);
   const touchId = useRef<number | null>(null);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
@@ -36,6 +36,12 @@ export default function MobileControls() {
     setKnob({ x: 0, y: 0 });
   };
 
+  // sitting/resting/praying freezes movement and hides the joystick - make
+  // sure a drag in progress at that moment doesn't leave moveX/moveZ stuck.
+  useEffect(() => {
+    if (!showJoystick) resetJoystick();
+  }, [showJoystick]);
+
   const onJoystickTouchStart = (e: React.TouchEvent) => {
     if (touchId.current !== null) return;
     const touch = e.changedTouches[0];
@@ -64,23 +70,27 @@ export default function MobileControls() {
       {/* movement joystick, bottom-left. Bottom offset clears the home-
           indicator gesture strip on notched phones (viewport-fit: cover
           means our content runs edge-to-edge there), so a drag starting
-          here can't be stolen by the OS swipe-up gesture. */}
-      <div
-        ref={baseRef}
-        onTouchStart={onJoystickTouchStart}
-        onTouchMove={onJoystickTouchMove}
-        onTouchEnd={onJoystickTouchEnd}
-        onTouchCancel={onJoystickTouchEnd}
-        className="pointer-events-auto absolute left-8 h-28 w-28 touch-none rounded-full border border-white/25 bg-black/25 backdrop-blur-sm"
-        style={{ bottom: "max(2rem, calc(env(safe-area-inset-bottom) + 1.25rem))" }}
-      >
+          here can't be stolen by the OS swipe-up gesture. Hidden while
+          movement is frozen (sitting/resting/praying) - the E button
+          below stays up regardless, so standing back up still works. */}
+      {showJoystick && (
         <div
-          className="absolute top-1/2 left-1/2 h-14 w-14 rounded-full bg-white/40"
-          style={{
-            transform: `translate(-50%, -50%) translate(${knob.x}px, ${knob.y}px)`,
-          }}
-        />
-      </div>
+          ref={baseRef}
+          onTouchStart={onJoystickTouchStart}
+          onTouchMove={onJoystickTouchMove}
+          onTouchEnd={onJoystickTouchEnd}
+          onTouchCancel={onJoystickTouchEnd}
+          className="pointer-events-auto absolute left-8 h-28 w-28 touch-none rounded-full border border-white/25 bg-black/25 backdrop-blur-sm"
+          style={{ bottom: "max(2rem, calc(env(safe-area-inset-bottom) + 1.25rem))" }}
+        >
+          <div
+            className="absolute top-1/2 left-1/2 h-14 w-14 rounded-full bg-white/40"
+            style={{
+              transform: `translate(-50%, -50%) translate(${knob.x}px, ${knob.y}px)`,
+            }}
+          />
+        </div>
+      )}
 
       {/* interact button, bottom-right */}
       <button

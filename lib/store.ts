@@ -109,17 +109,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   setNearbyActivity: (nearbyActivity) => set({ nearbyActivity }),
   setCustomizeOpen: (customizeOpen) => set({ customizeOpen }),
 
-  openQt: () => set({ qtOpen: true, activity: "praying" }),
+  // Opening prayer while already sitting (e.g. in a pew) keeps the sitting
+  // pose instead of switching to the standing "praying" one - closing it
+  // goes back to whichever pose that was.
+  openQt: () =>
+    set((s) => ({
+      qtOpen: true,
+      activity: s.activity === "sitting" ? "sitting" : "praying",
+    })),
   closeQt: () =>
-    set({
+    set((s) => ({
       qtOpen: false,
       qtMode: null,
       qtTopic: null,
       qtStep: 0,
       qtTimerRunning: false,
       qtTimerDone: false,
-      activity: null,
-    }),
+      activity: s.activity === "sitting" ? "sitting" : null,
+    })),
   pickQtMode: (qtMode) => set({ qtMode }),
   pickQtTopic: (topic) => set({ qtTopic: topic, qtStep: 0 }),
   setQtPauseEnabled: (qtPauseEnabled) => set({ qtPauseEnabled }),
