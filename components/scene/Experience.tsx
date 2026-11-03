@@ -46,9 +46,9 @@ export default function Experience() {
         Math.cos(look.current.yaw)
       );
       const rightVec = new THREE.Vector3(
-        Math.sin(look.current.yaw + Math.PI / 2),
+        Math.sin(look.current.yaw - Math.PI / 2),
         0,
-        Math.cos(look.current.yaw + Math.PI / 2)
+        Math.cos(look.current.yaw - Math.PI / 2)
       );
 
       velocity.current.set(0, 0, 0);
