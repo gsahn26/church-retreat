@@ -26,6 +26,7 @@ interface AppState {
   qtPauseEnabled: boolean;
 
   musicOn: boolean;
+  visitorsOpen: boolean;
 
   setNickname: (name: string) => void;
   setLocale: (locale: Locale) => void;
@@ -47,6 +48,7 @@ interface AppState {
   resetQt: () => void;
 
   toggleMusic: () => void;
+  setVisitorsOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -66,6 +68,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   qtPauseEnabled: true,
 
   musicOn: false,
+  visitorsOpen: false,
 
   setNickname: (nickname) => set({ nickname }),
   setLocale: (locale) => set({ locale }),
@@ -90,4 +93,5 @@ export const useAppStore = create<AppState>((set, get) => ({
   resetQt: () => set({ qtTopic: null, qtStep: 0 }),
 
   toggleMusic: () => set({ musicOn: !get().musicOn }),
+  setVisitorsOpen: (visitorsOpen) => set({ visitorsOpen }),
 }));

@@ -4,6 +4,7 @@ import { useAppStore } from "@/lib/store";
 import { LOCALES, t } from "@/lib/i18n";
 import CustomizePanel from "./CustomizePanel";
 import QTModal from "./QTModal";
+import VisitorsPanel from "./VisitorsPanel";
 
 const ZONE_KEY = {
   courtyard: "zoneCourtyard",
@@ -34,6 +35,8 @@ export default function HUD() {
   const setCustomizeOpen = useAppStore((s) => s.setCustomizeOpen);
   const qtOpen = useAppStore((s) => s.qtOpen);
   const openQt = useAppStore((s) => s.openQt);
+  const visitorsOpen = useAppStore((s) => s.visitorsOpen);
+  const setVisitorsOpen = useAppStore((s) => s.setVisitorsOpen);
 
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
@@ -73,6 +76,12 @@ export default function HUD() {
         >
           {t(locale, "customize")}
         </button>
+        <button
+          onClick={() => setVisitorsOpen(true)}
+          className="rounded-full bg-black/30 px-3 py-1 text-xs text-white/80 hover:bg-black/50"
+        >
+          {t(locale, "visitorsButton")}
+        </button>
       </div>
 
       {/* bottom hint */}
@@ -93,6 +102,7 @@ export default function HUD() {
 
       {customizeOpen && <CustomizePanel />}
       {qtOpen && <QTModal />}
+      {visitorsOpen && <VisitorsPanel />}
     </div>
   );
 }
