@@ -90,7 +90,24 @@ Supabase(Postgres)를 백엔드 겸 DB로 사용한다. 로그인/인증은 아�
 - **Read**: `last_seen`이 최근 90초 이내인 행만 "지금 접속 중"으로 조회 (`getOnlineVisitors`)
 
 테이블 생성 SQL은 [`sql/schema.sql`](./sql/schema.sql)에 있다. Supabase 대시보드의 SQL Editor에서
-한 번 실행하면 된다.
+한 번 실행하면 된다. 추가로, 접속자 닉네임 변조를 막는 보안 패치
+([`sql/security-patch-01.sql`](./sql/security-patch-01.sql), 아래 "보안" 절 참고)도 함께
+실행해야 한다.
+
+### 보안
+
+인증이 없는 MVP라 모든 쓰기는 공개 anon key로 이뤄진다. 직접 curl로 두드려 테스트한 결과를
+정리하면:
+
+| 점검 항목 | 결과 |
+| --- | --- |
+| 삭제(DELETE) 가능 여부 | 차단됨 (정책 없음 — 의도한 대로) |
+| 다른 사람의 접속자 행을 수정(UPDATE)할 수 있는지 | **가능했음 → 패치로 닉네임을 수정 불가(trigger)로 고정해 차단** |
+| SQL 인젝션 | 없음 (PostgREST가 쿼리를 파라미터화함) |
+| 닉네임을 통한 XSS | 없음 (React가 텍스트를 이스케이프 — `dangerouslySetInnerHTML` 미사용) |
+| 비정상적으로 많은 행 삽입(스팸/DB 용량 남용) | **막지 않음 — 알려진 한계로 남김** (레이트 리밋/인증 필요, 이번 범위 밖) |
+
+
 
 ## 이번 버전에서 의도적으로 뺀 것 (범위 좁히기)
 
