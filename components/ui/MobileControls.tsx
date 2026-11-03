@@ -61,14 +61,18 @@ export default function MobileControls() {
 
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
-      {/* movement joystick, bottom-left */}
+      {/* movement joystick, bottom-left. Bottom offset clears the home-
+          indicator gesture strip on notched phones (viewport-fit: cover
+          means our content runs edge-to-edge there), so a drag starting
+          here can't be stolen by the OS swipe-up gesture. */}
       <div
         ref={baseRef}
         onTouchStart={onJoystickTouchStart}
         onTouchMove={onJoystickTouchMove}
         onTouchEnd={onJoystickTouchEnd}
         onTouchCancel={onJoystickTouchEnd}
-        className="pointer-events-auto absolute bottom-8 left-8 h-28 w-28 touch-none rounded-full border border-white/25 bg-black/25 backdrop-blur-sm"
+        className="pointer-events-auto absolute left-8 h-28 w-28 touch-none rounded-full border border-white/25 bg-black/25 backdrop-blur-sm"
+        style={{ bottom: "max(2rem, calc(env(safe-area-inset-bottom) + 1.25rem))" }}
       >
         <div
           className="absolute top-1/2 left-1/2 h-14 w-14 rounded-full bg-white/40"
@@ -94,9 +98,10 @@ export default function MobileControls() {
           setPressed(false);
           touchInput.interact = false;
         }}
-        className={`pointer-events-auto absolute bottom-10 right-8 flex h-20 w-20 touch-none items-center justify-center rounded-full border border-amber-200/40 text-sm font-semibold text-amber-50 backdrop-blur-sm transition ${
+        className={`pointer-events-auto absolute right-8 flex h-20 w-20 touch-none items-center justify-center rounded-full border border-amber-200/40 text-sm font-semibold text-amber-50 backdrop-blur-sm transition ${
           pressed ? "bg-amber-400/60" : "bg-black/25"
         }`}
+        style={{ bottom: "max(2.5rem, calc(env(safe-area-inset-bottom) + 1.75rem))" }}
       >
         E
       </button>

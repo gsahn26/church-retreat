@@ -11,5 +11,12 @@ export const touchInput = {
 
 export function isTouchDevice(): boolean {
   if (typeof window === "undefined") return false;
-  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  // `ontouchstart`/maxTouchPoints alone can miss some in-app browsers
+  // (e.g. KakaoTalk's webview); `pointer: coarse` catches those too.
+  return (
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    (typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches)
+  );
 }

@@ -27,7 +27,11 @@ export function usePointerLock(domTarget: HTMLElement | null) {
 
     const onClick = () => {
       if (document.pointerLockElement !== domTarget) {
-        domTarget.requestPointerLock()?.catch(() => {
+        // requestPointerLock doesn't exist at all on some mobile browsers
+        // (unlike requestFullscreen, which is optional-chained below) —
+        // call it defensively so a tap on a touch device can't throw and
+        // abort this handler.
+        domTarget.requestPointerLock?.()?.catch(() => {
           // pointer lock can be refused (e.g. embedded iframe contexts) — movement still works via keyboard
         });
         if (!document.fullscreenElement) {
