@@ -52,47 +52,52 @@ function SanctuaryDoor({
 // A proper pew: seat + tilted backrest + legs, instead of a single solid
 // block, so it actually reads as something to sit on. Backrest sits on the
 // +z side (toward the entrance) so sitters face the altar at -z.
-// Seat and backrest used to be the same dark wood tone, which under this
-// scene's dim lighting blended into one flat silhouette - from the aisle it
-// read as a vertical slab, not a chair. The seat is now a lighter, slightly
-// glowing honey tone so it visually separates from the darker frame/
-// backrest, and two armrest dividers + backrest slats break the row into
-// three readable individual seats instead of one plank.
 const PEW_FRAME_COLOR = "#3a2c1c";
 const PEW_SEAT_COLOR = "#9a7248";
+// The sanctuary's floor platform mesh is centred at y=0.3 with height 0.6,
+// so its walkable top surface is at y=0.6 - not y=0. Every seat position
+// below was built against y=0 as "the floor", so the whole assembly sat
+// half a meter into the ground with only the top of the backrest poking
+// through, which is what actually read as a thin "|" sliver.
+const SANCTUARY_FLOOR_Y = 0.6;
 
-function PewBench({ x, z }: { x: number; z: number }) {
-  const dividerXs = [-0.87, 0.87];
+// A single, free-standing wooden chair - 4 legs, a seat, a backrest - like
+// an ordinary church chair, not a fixed pew bench.
+function ChurchChair({ x }: { x: number }) {
+  const legXZ: [number, number][] = [
+    [-0.19, -0.19],
+    [0.19, -0.19],
+    [-0.19, 0.19],
+    [0.19, 0.19],
+  ];
   return (
-    <group position={[x, 0, z]}>
-      {[-1.15, 1.15].map((legX) => (
-        <mesh key={legX} position={[legX, 0.2, 0]} castShadow>
-          <boxGeometry args={[0.1, 0.4, 0.42]} />
+    <group position={[x, SANCTUARY_FLOOR_Y, 0]}>
+      {legXZ.map(([lx, lz]) => (
+        <mesh key={`${lx}-${lz}`} position={[lx, 0.2, lz]} castShadow>
+          <boxGeometry args={[0.05, 0.4, 0.05]} />
           <meshStandardMaterial color={PEW_FRAME_COLOR} />
         </mesh>
       ))}
       <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.6, 0.08, 0.5]} />
+        <boxGeometry args={[0.44, 0.05, 0.44]} />
         <meshStandardMaterial color={PEW_SEAT_COLOR} emissive={PEW_SEAT_COLOR} emissiveIntensity={0.08} />
       </mesh>
-      <mesh position={[0, 0.76, 0.21]} rotation-x={-0.15} castShadow receiveShadow>
-        <boxGeometry args={[2.6, 0.68, 0.07]} />
+      <mesh position={[0, 0.68, 0.19]} rotation-x={-0.1} castShadow receiveShadow>
+        <boxGeometry args={[0.44, 0.52, 0.05]} />
         <meshStandardMaterial color={PEW_SEAT_COLOR} emissive={PEW_SEAT_COLOR} emissiveIntensity={0.05} />
       </mesh>
-      {/* backrest dividers, so the panel reads as three seat-backs */}
-      {dividerXs.map((dx) => (
-        <mesh key={`slat-${dx}`} position={[dx, 0.76, 0.19]} rotation-x={-0.15} castShadow>
-          <boxGeometry args={[0.06, 0.72, 0.1]} />
-          <meshStandardMaterial color={PEW_FRAME_COLOR} />
-        </mesh>
-      ))}
-      {/* armrest dividers between seats, low over the seat plank */}
-      {dividerXs.map((dx) => (
-        <mesh key={`arm-${dx}`} position={[dx, 0.52, 0.05]} castShadow>
-          <boxGeometry args={[0.07, 0.14, 0.4]} />
-          <meshStandardMaterial color={PEW_FRAME_COLOR} />
-        </mesh>
-      ))}
+    </group>
+  );
+}
+
+// Two chairs side by side per pew spot, replacing the earlier one-piece
+// bench. Keeps the function name/signature so the sit-interaction points
+// (world.ts) and call sites don't need to change.
+function PewBench({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <ChurchChair x={-0.65} />
+      <ChurchChair x={0.65} />
     </group>
   );
 }
