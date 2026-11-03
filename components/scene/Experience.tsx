@@ -396,7 +396,8 @@ export default function Experience() {
     for (let t = 0.15; t <= 1; t += 0.1) {
       const testX = camTarget.x + camOffset.x * t;
       const testZ = camTarget.z + camOffset.z * t;
-      if (isPointInsideSolids(testX, testZ)) {
+      const testY = camTarget.y + camOffset.y * t;
+      if (isPointInsideSolids(testX, testZ, testY)) {
         camT = Math.max(0.15, t - 0.15);
         break;
       }

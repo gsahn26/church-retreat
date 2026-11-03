@@ -96,10 +96,23 @@ export interface SolidBox {
   maxX: number;
   minZ: number;
   maxZ: number;
+  // Only set on low furniture (pews/chairs, the altar table, the pulpit).
+  // Player movement collision (resolveCollisions) ignores this and always
+  // treats every box as floor-to-ceiling solid. The camera-pullback check
+  // (isPointInsideSolids) uses it to let the chase camera pass *over* a
+  // chair instead of yanking in close every time a turn swings it across
+  // one - it only needs to avoid actual walls.
+  maxY?: number;
 }
 
-function box(cx: number, cz: number, halfW: number, halfD: number): SolidBox {
-  return { minX: cx - halfW, maxX: cx + halfW, minZ: cz - halfD, maxZ: cz + halfD };
+function box(
+  cx: number,
+  cz: number,
+  halfW: number,
+  halfD: number,
+  maxY?: number
+): SolidBox {
+  return { minX: cx - halfW, maxX: cx + halfW, minZ: cz - halfD, maxZ: cz + halfD, maxY };
 }
 
 const SANCTUARY_SOLIDS: SolidBox[] = [
@@ -109,13 +122,14 @@ const SANCTUARY_SOLIDS: SolidBox[] = [
   box(5.4, SANCTUARY_Z, 0.3, 4.6),
   box(-3.2, SANCTUARY_FRONT_Z, 1.9, 0.3),
   box(3.2, SANCTUARY_FRONT_Z, 1.9, 0.3),
-  // communion table + pulpit, so they read as solid furniture
-  box(0, SANCTUARY_Z - 3.3, 1.3, 0.5),
-  box(-3.1, SANCTUARY_Z - 3, 0.45, 0.35),
-  // pews: one box per bench
+  // communion table + pulpit, so they read as solid furniture (maxY lets
+  // the chase camera pass over these instead of treating them like walls)
+  box(0, SANCTUARY_Z - 3.3, 1.3, 0.5, 1.6),
+  box(-3.1, SANCTUARY_Z - 3, 0.45, 0.35, 1.2),
+  // pew chairs: one box per row-spot (covers both chairs there)
   ...PEW_ROWS_Z.flatMap((rowZ) => [
-    box(-2.6, SANCTUARY_Z + rowZ, 1.35, 0.3),
-    box(2.6, SANCTUARY_Z + rowZ, 1.35, 0.3),
+    box(-2.6, SANCTUARY_Z + rowZ, 1.35, 0.3, 1.8),
+    box(2.6, SANCTUARY_Z + rowZ, 1.35, 0.3, 1.8),
   ]),
 ];
 
@@ -142,8 +156,9 @@ export const SOLID_BOXES: SolidBox[] = [
   ...HOME_SOLIDS,
 ];
 
-export function isPointInsideSolids(x: number, z: number): boolean {
+export function isPointInsideSolids(x: number, z: number, y?: number): boolean {
   for (const b of SOLID_BOXES) {
+    if (b.maxY !== undefined && y !== undefined && y > b.maxY) continue;
     if (x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ) return true;
   }
   return false;
