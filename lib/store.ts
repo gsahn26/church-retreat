@@ -10,6 +10,13 @@ export type ActivityId = "praying" | "resting" | "gardening" | "sitting" | null;
 export type QtTopic = "thanks" | "repent" | "intercede" | "heal";
 export type QtMode = "topic" | "timer";
 
+// Who is in the world right now. Filled from the Realtime presence roster
+// (see lib/multiplayer.js); it is not persisted anywhere.
+export interface OnlineVisitor {
+  sessionId: string;
+  nickname: string;
+}
+
 interface AppState {
   nickname: string;
   locale: Locale;
@@ -33,6 +40,7 @@ interface AppState {
   musicOn: boolean;
   visitorsOpen: boolean;
   liveWorshipOpen: boolean;
+  onlineVisitors: OnlineVisitor[];
 
   setNickname: (name: string) => void;
   setLocale: (locale: Locale) => void;
@@ -61,6 +69,7 @@ interface AppState {
   toggleMusic: () => void;
   setVisitorsOpen: (open: boolean) => void;
   setLiveWorshipOpen: (open: boolean) => void;
+  setOnlineVisitors: (visitors: OnlineVisitor[]) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -86,6 +95,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   musicOn: false,
   visitorsOpen: false,
   liveWorshipOpen: false,
+  onlineVisitors: [],
 
   setNickname: (nickname) => set({ nickname }),
   setLocale: (locale) => set({ locale }),
@@ -126,4 +136,5 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleMusic: () => set({ musicOn: !get().musicOn }),
   setVisitorsOpen: (visitorsOpen) => set({ visitorsOpen }),
   setLiveWorshipOpen: (liveWorshipOpen) => set({ liveWorshipOpen }),
+  setOnlineVisitors: (onlineVisitors) => set({ onlineVisitors }),
 }));
