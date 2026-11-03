@@ -18,6 +18,7 @@ import {
   WORLD_BOUNDS,
   distanceXZ,
   getZoneAt,
+  isPointInsideSolids,
   resolveCollisions,
 } from "@/lib/world";
 
@@ -329,7 +330,19 @@ export default function Experience() {
       Math.cos(look.current.yaw) * -CAMERA_DISTANCE * Math.cos(look.current.pitch)
     );
     const camTarget = position.current.clone().add(new THREE.Vector3(0, 1.2, 0));
-    const desiredCamPos = camTarget.clone().add(camOffset);
+    // Pull the camera in along its own offset if a wall sits between it and
+    // the character (e.g. sitting in a front pew near the sanctuary door),
+    // so it never ends up clipped through geometry looking out from outside.
+    let camT = 1;
+    for (let t = 0.15; t <= 1; t += 0.1) {
+      const testX = camTarget.x + camOffset.x * t;
+      const testZ = camTarget.z + camOffset.z * t;
+      if (isPointInsideSolids(testX, testZ)) {
+        camT = Math.max(0.15, t - 0.15);
+        break;
+      }
+    }
+    const desiredCamPos = camTarget.clone().add(camOffset.clone().multiplyScalar(camT));
     state.camera.position.lerp(desiredCamPos, 1 - Math.pow(0.001, delta));
     state.camera.lookAt(camTarget);
   });

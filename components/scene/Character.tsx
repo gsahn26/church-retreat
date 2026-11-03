@@ -11,6 +11,10 @@ const OUTFIT_COLORS: Record<OutfitColor, string> = {
 
 const HAIR_COLOR = "#2b2520";
 const SKIN_COLOR = "#e8b894";
+// Lifts the (already scale-y-squashed) body up so it reads as sitting on
+// top of a pew seat (~0.42m) rather than crouching on the floor. The group
+// this applies to is squashed by 0.62 at the parent, so divide back out.
+const SIT_LIFT = 0.42 / 0.62;
 
 interface CharacterProps {
   outfit: OutfitColor;
@@ -25,7 +29,7 @@ const Character = forwardRef<THREE.Group, CharacterProps>(
 
     return (
       <group ref={ref} rotation-x={lying ? -Math.PI / 2 : 0} scale-y={sitting ? 0.62 : 1}>
-        <group position-y={lying ? 0.25 : 0}>
+        <group position-y={lying ? 0.25 : sitting ? SIT_LIFT : 0}>
           {/* body / coat */}
           <mesh position={[0, 0.9, 0]} castShadow>
             <capsuleGeometry args={[0.28, 0.7, 4, 8]} />

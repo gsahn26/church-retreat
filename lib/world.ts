@@ -121,6 +121,13 @@ export const SOLID_BOXES: SolidBox[] = [
   ...HOME_SOLIDS,
 ];
 
+export function isPointInsideSolids(x: number, z: number): boolean {
+  for (const b of SOLID_BOXES) {
+    if (x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ) return true;
+  }
+  return false;
+}
+
 const CHARACTER_RADIUS = 0.32;
 
 export function resolveCollisions(pos: THREE.Vector3) {

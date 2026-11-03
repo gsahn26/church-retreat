@@ -49,6 +49,30 @@ function SanctuaryDoor({
   );
 }
 
+// A proper pew: seat + tilted backrest + legs, instead of a single solid
+// block, so it actually reads as something to sit on. Backrest sits on the
+// +z side (toward the entrance) so sitters face the altar at -z.
+function PewBench({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      {[-1.15, 1.15].map((legX) => (
+        <mesh key={legX} position={[legX, 0.2, 0]} castShadow>
+          <boxGeometry args={[0.1, 0.4, 0.42]} />
+          <meshStandardMaterial color="#4a3826" />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.6, 0.08, 0.5]} />
+        <meshStandardMaterial color="#6b5438" />
+      </mesh>
+      <mesh position={[0, 0.76, 0.21]} rotation-x={-0.15} castShadow receiveShadow>
+        <boxGeometry args={[2.6, 0.68, 0.07]} />
+        <meshStandardMaterial color="#6b5438" />
+      </mesh>
+    </group>
+  );
+}
+
 function StainedWindow({ x, z, rotY }: { x: number; z: number; rotY: number }) {
   return (
     <group position={[x, 3, z]} rotation-y={rotY}>
@@ -177,14 +201,8 @@ export default function ChurchStructures({
         {/* pews, four rows each side of the aisle */}
         {[1.8, 0.3, -1.2, -2.7].map((rowZ) => (
           <group key={rowZ}>
-            <mesh position={[-2.6, 0.9, rowZ]} castShadow receiveShadow>
-              <boxGeometry args={[2.6, 0.9, 0.5]} />
-              <meshStandardMaterial color="#6b5438" />
-            </mesh>
-            <mesh position={[2.6, 0.9, rowZ]} castShadow receiveShadow>
-              <boxGeometry args={[2.6, 0.9, 0.5]} />
-              <meshStandardMaterial color="#6b5438" />
-            </mesh>
+            <PewBench x={-2.6} z={rowZ} />
+            <PewBench x={2.6} z={rowZ} />
           </group>
         ))}
 
