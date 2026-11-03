@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { Html } from "@react-three/drei";
+import { Billboard, Text } from "@react-three/drei";
 import Character from "./Character";
 import ChurchStructures from "./ChurchStructures";
 import RemotePlayers, { type RemotePlayer, type RemoteTarget } from "./RemotePlayers";
@@ -51,17 +51,50 @@ interface NetClient {
   leave: () => void;
 }
 
+// Renders as actual 3D geometry (Billboard + Text), not a drei <Html> DOM
+// portal: an <Html> here reliably mounted for RemotePlayers' avatars but
+// never for the local player no matter how this was restructured (same
+// component shape, always-mounted, logged to confirm it was rendering) -
+// going through Three.js directly instead of a React-DOM portal sidesteps
+// whatever that was.
+function LocalNicknameTag({
+  nickname,
+  positionRef,
+}: {
+  nickname: string;
+  positionRef: React.RefObject<THREE.Vector3>;
+}) {
+  const group = useRef<THREE.Group>(null);
+
+  useFrame(() => {
+    if (group.current) {
+      group.current.position.copy(positionRef.current);
+    }
+  });
+
+  if (!nickname) return null;
+
+  return (
+    <group ref={group}>
+      <Billboard position={[0, 2.05, 0]}>
+        <mesh position={[0, 0, -0.01]}>
+          <planeGeometry args={[nickname.length * 0.11 + 0.18, 0.26]} />
+          <meshBasicMaterial color="black" transparent opacity={0.45} />
+        </mesh>
+        <Text fontSize={0.16} color="#fffaf0" anchorX="center" anchorY="middle">
+          {nickname}
+        </Text>
+      </Billboard>
+    </group>
+  );
+}
+
 export default function Experience() {
   const { gl } = useThree();
   const keyboard = useKeyboard();
   const { look } = usePointerLock(gl.domElement);
 
   const characterRef = useRef<THREE.Group>(null);
-  // Separate group, kept in sync with the character every frame, that just
-  // anchors our own nickname tag the same way RemotePlayers anchors each
-  // remote player's - keeping Character.tsx itself free of any Html/label
-  // concerns so it stays a plain, ref-forwardable mesh component.
-  const nicknameAnchorRef = useRef<THREE.Group>(null);
   const position = useRef(new THREE.Vector3(0, 0, 8));
   const velocity = useRef(new THREE.Vector3());
 
@@ -264,9 +297,6 @@ export default function Experience() {
       characterRef.current.position.copy(position.current);
       characterRef.current.rotation.y = look.current.yaw + Math.PI;
     }
-    if (nicknameAnchorRef.current) {
-      nicknameAnchorRef.current.position.copy(position.current);
-    }
 
     // --- stream our state to the other visitors -------------------------
     const now = performance.now();
@@ -395,21 +425,10 @@ export default function Experience() {
         sitting={activity === "sitting"}
       />
 
-      {nickname && activity !== "resting" && (
-        <group ref={nicknameAnchorRef}>
-          <Html
-            position={[0, 2.05, 0]}
-            center
-            distanceFactor={12}
-            zIndexRange={[10, 0]}
-            style={{ pointerEvents: "none", userSelect: "none" }}
-          >
-            <div className="whitespace-nowrap rounded-full bg-black/45 px-2 py-0.5 text-[11px] font-medium text-amber-50 backdrop-blur-sm">
-              {nickname}
-            </div>
-          </Html>
-        </group>
-      )}
+      <LocalNicknameTag
+        nickname={activity === "resting" ? "" : nickname}
+        positionRef={position}
+      />
     </>
   );
 }
