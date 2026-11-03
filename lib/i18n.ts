@@ -32,6 +32,8 @@ const dict = {
     close: "닫기",
     welcome: "님, 어서 오세요",
     qtButton: "묵상 기도",
+    musicToggle: "찬양 음악",
+    churchCredit: "개봉동 목양교회 성도를 위한 쉼의 공간",
 
     qtPickTitle: "오늘은 어떤 기도를 드릴까요?",
     qtTopicThanks: "감사 기도",
@@ -106,6 +108,8 @@ const dict = {
     close: "Close",
     welcome: ", welcome",
     qtButton: "Quiet Time",
+    musicToggle: "Hymn Music",
+    churchCredit: "A resting place for Mokyang Church (Gaebong-dong)",
 
     qtPickTitle: "What would you like to pray today?",
     qtTopicThanks: "Thanksgiving",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { LOCALES, t } from "@/lib/i18n";
+import LoginBackdrop from "./LoginBackdrop";
 
 export default function LoginScreen() {
   const locale = useAppStore((s) => s.locale);
@@ -37,8 +38,8 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="relative flex h-dvh w-dvw items-center justify-center overflow-hidden bg-gradient-to-b from-[#1c2a3a] via-[#283b4f] to-[#101823]">
-      <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_50%_0%,rgba(255,210,150,0.4),transparent_60%)]" />
+    <div className="relative flex h-dvh w-dvw items-center justify-center overflow-hidden bg-[#0c130c]">
+      <LoginBackdrop />
 
       <div className="absolute top-6 right-6 flex gap-2">
         {LOCALES.map((l) => (
@@ -64,6 +65,9 @@ export default function LoginScreen() {
           </h1>
           <p className="mt-2 text-sm text-amber-100/60">
             {t(locale, "subtitle")}
+          </p>
+          <p className="mt-1 text-xs text-amber-200/50">
+            {t(locale, "churchCredit")}
           </p>
         </div>
 

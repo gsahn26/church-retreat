@@ -25,6 +25,8 @@ interface AppState {
   qtStep: number;
   qtPauseEnabled: boolean;
 
+  musicOn: boolean;
+
   setNickname: (name: string) => void;
   setLocale: (locale: Locale) => void;
   enter: () => void;
@@ -43,6 +45,8 @@ interface AppState {
   qtNext: (totalSteps: number) => void;
   qtPrev: () => void;
   resetQt: () => void;
+
+  toggleMusic: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -60,6 +64,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   qtTopic: null,
   qtStep: 0,
   qtPauseEnabled: true,
+
+  musicOn: false,
 
   setNickname: (nickname) => set({ nickname }),
   setLocale: (locale) => set({ locale }),
@@ -82,4 +88,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ qtStep: Math.min(get().qtStep + 1, totalSteps) }),
   qtPrev: () => set({ qtStep: Math.max(get().qtStep - 1, 0) }),
   resetQt: () => set({ qtTopic: null, qtStep: 0 }),
+
+  toggleMusic: () => set({ musicOn: !get().musicOn }),
 }));
