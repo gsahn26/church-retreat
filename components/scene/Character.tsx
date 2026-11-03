@@ -16,14 +16,15 @@ interface CharacterProps {
   outfit: OutfitColor;
   hair: HairStyle;
   lying?: boolean;
+  sitting?: boolean;
 }
 
 const Character = forwardRef<THREE.Group, CharacterProps>(
-  ({ outfit, hair, lying }, ref) => {
+  ({ outfit, hair, lying, sitting }, ref) => {
     const coatColor = OUTFIT_COLORS[outfit];
 
     return (
-      <group ref={ref} rotation-x={lying ? -Math.PI / 2 : 0}>
+      <group ref={ref} rotation-x={lying ? -Math.PI / 2 : 0} scale-y={sitting ? 0.62 : 1}>
         <group position-y={lying ? 0.25 : 0}>
           {/* body / coat */}
           <mesh position={[0, 0.9, 0]} castShadow>

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Church of Rest",
-  description: "A 3D church devotional and quiet time space",
+  title: "목양교회",
+  description: "개봉동 목양교회 3D 묵상 공간",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

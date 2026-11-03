@@ -8,10 +8,20 @@ export interface InteractionPoint {
   zone: ZoneId;
 }
 
+const PEW_ROWS_Z = [1.8, 0.3, -1.2, -2.7];
+const SANCTUARY_Z = -15;
+
+// one sit spot per pew bench (4 rows x 2 pews)
+const PEW_SIT_POINTS: InteractionPoint[] = PEW_ROWS_Z.flatMap((rowZ) => [
+  { id: "sitting" as const, position: [-2.6, 0, SANCTUARY_Z + rowZ] as [number, number, number], radius: 1.1, zone: "hall" as const },
+  { id: "sitting" as const, position: [2.6, 0, SANCTUARY_Z + rowZ] as [number, number, number], radius: 1.1, zone: "hall" as const },
+]);
+
 export const INTERACTION_POINTS: InteractionPoint[] = [
   { id: "praying", position: [0, 0, -17.5], radius: 2.2, zone: "hall" },
   { id: "resting", position: [10, 0, -5], radius: 1.8, zone: "room" },
   { id: "gardening", position: [-8, 0, 5], radius: 2, zone: "courtyard" },
+  ...PEW_SIT_POINTS,
 ];
 
 interface ZoneBox {
@@ -23,6 +33,7 @@ interface ZoneBox {
 const ZONE_BOXES: ZoneBox[] = [
   { id: "hall", min: [-5, -20], max: [5, -11] },
   { id: "room", min: [7.5, -7.5], max: [12.5, -2.5] },
+  { id: "home", min: [12, 5], max: [20, 13] },
   { id: "courtyard", min: [-20, -11], max: [20, 20] },
 ];
 
@@ -46,4 +57,73 @@ export function distanceXZ(
   return Math.sqrt(dx * dx + dz * dz);
 }
 
-export const WORLD_BOUNDS = { minX: -19, maxX: 19, minZ: -19.5, maxZ: 19 };
+export const WORLD_BOUNDS = { minX: -19, maxX: 24, minZ: -19.5, maxZ: 19 };
+
+// --- collision -------------------------------------------------------
+
+export interface SolidBox {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+}
+
+function box(cx: number, cz: number, halfW: number, halfD: number): SolidBox {
+  return { minX: cx - halfW, maxX: cx + halfW, minZ: cz - halfD, maxZ: cz + halfD };
+}
+
+const SANCTUARY_SOLIDS: SolidBox[] = [
+  // back + side walls (front, facing the courtyard, is left open as the doorway)
+  box(0, SANCTUARY_Z - 4.4, 5.7, 0.3),
+  box(-5.4, SANCTUARY_Z, 0.3, 4.6),
+  box(5.4, SANCTUARY_Z, 0.3, 4.6),
+  // communion table + pulpit, so they read as solid furniture
+  box(0, SANCTUARY_Z - 3.3, 1.3, 0.5),
+  box(-3.1, SANCTUARY_Z - 3, 0.45, 0.35),
+  // pews: one box per bench
+  ...PEW_ROWS_Z.flatMap((rowZ) => [
+    box(-2.6, SANCTUARY_Z + rowZ, 1.35, 0.3),
+    box(2.6, SANCTUARY_Z + rowZ, 1.35, 0.3),
+  ]),
+];
+
+const QUIET_ROOM_SOLIDS: SolidBox[] = [
+  box(10, -5 - 2.8, 3.2, 0.3), // back wall (front, facing the garden, stays open)
+  box(10 - 2.85, -5, 0.3, 3.2),
+  box(10 + 2.85, -5, 0.3, 3.2),
+];
+
+// a small house east of the church courtyard; footprint x:[12.4,19.6] z:[5.8,12.2],
+// with a 1.2-wide door gap centered on the south wall (x=16, z=5.8) so the
+// player can walk in facing north from the courtyard.
+export const HOME_SOLIDS: SolidBox[] = [
+  box(16, 12.2, 3.6, 0.3), // north (back) wall
+  box(12.4, 9, 0.3, 3.4), // west wall
+  box(19.6, 9, 0.3, 3.4), // east wall
+  box(13.9, 5.8, 1.5, 0.3), // south wall, left of the door
+  box(18.1, 5.8, 1.5, 0.3), // south wall, right of the door
+];
+
+export const SOLID_BOXES: SolidBox[] = [
+  ...SANCTUARY_SOLIDS,
+  ...QUIET_ROOM_SOLIDS,
+  ...HOME_SOLIDS,
+];
+
+const CHARACTER_RADIUS = 0.32;
+
+export function resolveCollisions(pos: THREE.Vector3) {
+  for (const b of SOLID_BOXES) {
+    const closestX = THREE.MathUtils.clamp(pos.x, b.minX, b.maxX);
+    const closestZ = THREE.MathUtils.clamp(pos.z, b.minZ, b.maxZ);
+    const dx = pos.x - closestX;
+    const dz = pos.z - closestZ;
+    const distSq = dx * dx + dz * dz;
+    if (distSq < CHARACTER_RADIUS * CHARACTER_RADIUS) {
+      const dist = Math.sqrt(distSq) || 0.0001;
+      const overlap = CHARACTER_RADIUS - dist;
+      pos.x += (dx / dist) * overlap;
+      pos.z += (dz / dist) * overlap;
+    }
+  }
+}

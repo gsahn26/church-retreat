@@ -1,27 +1,32 @@
 "use client";
 
+import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { LOCALES, t } from "@/lib/i18n";
 import CustomizePanel from "./CustomizePanel";
 import QTModal from "./QTModal";
 import VisitorsPanel from "./VisitorsPanel";
+import LiveWorshipPanel from "./LiveWorshipPanel";
 
 const ZONE_KEY = {
   courtyard: "zoneCourtyard",
   hall: "zoneHall",
   room: "zoneRoom",
+  home: "zoneHome",
 } as const;
 
 const ACTIVITY_MESSAGE = {
   praying: "praying",
   resting: "resting",
   gardening: "gardening",
+  sitting: "sitting",
 } as const;
 
 const INTERACT_HINT = {
   praying: "interactPray",
   resting: "interactRest",
   gardening: "interactGarden",
+  sitting: "interactSit",
 } as const;
 
 export default function HUD() {
@@ -37,6 +42,17 @@ export default function HUD() {
   const openQt = useAppStore((s) => s.openQt);
   const visitorsOpen = useAppStore((s) => s.visitorsOpen);
   const setVisitorsOpen = useAppStore((s) => s.setVisitorsOpen);
+  const liveWorshipOpen = useAppStore((s) => s.liveWorshipOpen);
+  const setLiveWorshipOpen = useAppStore((s) => s.setLiveWorshipOpen);
+
+  const anyModalOpen = customizeOpen || qtOpen || visitorsOpen || liveWorshipOpen;
+
+  // 선택창(모달)이 뜨면 마우스 포인터 잠금을 풀어서 커서가 바로 보이고 클릭할 수 있게 한다.
+  useEffect(() => {
+    if (anyModalOpen && document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+  }, [anyModalOpen]);
 
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
@@ -50,7 +66,7 @@ export default function HUD() {
         <span>{t(locale, ZONE_KEY[currentZone])}</span>
       </div>
 
-      <div className="pointer-events-auto absolute top-4 right-4 flex gap-2">
+      <div className="pointer-events-auto absolute top-4 right-4 flex flex-wrap justify-end gap-2">
         {LOCALES.map((l) => (
           <button
             key={l.code}
@@ -69,6 +85,12 @@ export default function HUD() {
           className="rounded-full bg-amber-400/90 px-3 py-1 text-xs font-semibold text-stone-900 hover:bg-amber-300"
         >
           {t(locale, "qtButton")}
+        </button>
+        <button
+          onClick={() => setLiveWorshipOpen(true)}
+          className="rounded-full bg-black/30 px-3 py-1 text-xs text-white/80 hover:bg-black/50"
+        >
+          {t(locale, "liveWorshipButton")}
         </button>
         <button
           onClick={() => setCustomizeOpen(true)}
@@ -103,6 +125,7 @@ export default function HUD() {
       {customizeOpen && <CustomizePanel />}
       {qtOpen && <QTModal />}
       {visitorsOpen && <VisitorsPanel />}
+      {liveWorshipOpen && <LiveWorshipPanel />}
     </div>
   );
 }

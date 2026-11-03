@@ -8,7 +8,13 @@ import ChurchStructures from "./ChurchStructures";
 import { useKeyboard } from "@/hooks/useKeyboard";
 import { usePointerLock } from "@/hooks/usePointerLock";
 import { useAppStore } from "@/lib/store";
-import { INTERACTION_POINTS, WORLD_BOUNDS, distanceXZ, getZoneAt } from "@/lib/world";
+import {
+  INTERACTION_POINTS,
+  WORLD_BOUNDS,
+  distanceXZ,
+  getZoneAt,
+  resolveCollisions,
+} from "@/lib/world";
 
 const MOVE_SPEED = 4.2;
 const CAMERA_DISTANCE = 4.5;
@@ -38,8 +44,10 @@ export default function Experience() {
   useFrame((state, delta) => {
     const k = keyboard.current;
     const lying = activity === "resting";
+    const seated = activity === "sitting";
+    const frozen = lying || seated;
 
-    if (!lying) {
+    if (!frozen) {
       const forwardVec = new THREE.Vector3(
         Math.sin(look.current.yaw),
         0,
@@ -70,6 +78,7 @@ export default function Experience() {
           WORLD_BOUNDS.minZ,
           WORLD_BOUNDS.maxZ
         );
+        resolveCollisions(position.current);
       }
     }
 
@@ -81,7 +90,7 @@ export default function Experience() {
     setCurrentZone(getZoneAt(position.current.x, position.current.z));
 
     // nearby interaction point
-    let closest: "praying" | "resting" | "gardening" | null = null;
+    let closest: "praying" | "resting" | "gardening" | "sitting" | null = null;
     for (const p of INTERACTION_POINTS) {
       if (distanceXZ(position.current, p.position) < p.radius) {
         closest = p.id;
@@ -120,7 +129,10 @@ export default function Experience() {
   });
 
   return (
-    <group>
+    <>
+      <fog attach="fog" args={["#bcd6ea", 20, 60]} />
+      <color attach="background" args={["#8fc1e8"]} />
+
       <ambientLight intensity={0.6} />
       <directionalLight
         position={[12, 18, 6]}
@@ -130,12 +142,16 @@ export default function Experience() {
       >
         <orthographicCamera attach="shadow-camera" args={[-25, 25, 25, -25]} />
       </directionalLight>
-      <fog attach="fog" args={["#d7dcc9", 20, 55]} />
-      <color attach="background" args={["#d7dcc9"]} />
 
       <ChurchStructures />
 
-      <Character ref={characterRef} outfit={outfit} hair={hair} lying={activity === "resting"} />
-    </group>
+      <Character
+        ref={characterRef}
+        outfit={outfit}
+        hair={hair}
+        lying={activity === "resting"}
+        sitting={activity === "sitting"}
+      />
+    </>
   );
 }

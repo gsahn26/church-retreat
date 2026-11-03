@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { t } from "@/lib/i18n";
 import { getOnlineVisitors, getVisitHistory } from "@/lib/visits";
+import { describeError } from "@/lib/errors";
 
 function formatTime(iso: string) {
   const d = new Date(iso);
@@ -52,13 +53,7 @@ export default function VisitorsPanel() {
         }
       } catch (err) {
         if (!cancelled) {
-          const message =
-            err instanceof Error
-              ? err.message
-              : typeof err === "object" && err !== null && "message" in err
-                ? String((err as { message: unknown }).message)
-                : String(err);
-          setError(message);
+          setError(describeError(err));
           setLoaded(true);
         }
       }

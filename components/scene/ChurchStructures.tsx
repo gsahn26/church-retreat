@@ -54,14 +54,14 @@ export default function ChurchStructures() {
           <coneGeometry args={[2.9, 1.3, 3]} />
           <meshStandardMaterial color="#cfc6ae" />
         </mesh>
-        {/* cross on top */}
+        {/* cross on top, matching the real building's blue steel cross */}
         <mesh position={[0, 6.3, 0]} castShadow>
           <boxGeometry args={[0.16, 1, 0.16]} />
-          <meshStandardMaterial color="#5c4a30" />
+          <meshStandardMaterial color="#3d6aa8" />
         </mesh>
         <mesh position={[0, 6.6, 0]} castShadow>
           <boxGeometry args={[0.6, 0.16, 0.16]} />
-          <meshStandardMaterial color="#5c4a30" />
+          <meshStandardMaterial color="#3d6aa8" />
         </mesh>
       </group>
 
@@ -154,11 +154,6 @@ export default function ChurchStructures() {
           </mesh>
         </group>
 
-        {/* kneeling cushion for praying */}
-        <mesh position={[0, 0.65, -0.5]} receiveShadow>
-          <cylinderGeometry args={[0.6, 0.6, 0.12, 20]} />
-          <meshStandardMaterial color="#8a2e3a" />
-        </mesh>
       </group>
 
       {/* Quiet Room */}
@@ -190,6 +185,59 @@ export default function ChurchStructures() {
         </mesh>
         {/* small window light */}
         <pointLight position={[0, 3.5, 0]} intensity={8} color="#ffdca8" distance={8} />
+      </group>
+
+      {/* My House - a second, smaller building east of the church, with a door */}
+      <group position={[16, 0, 9]}>
+        <mesh position={[0, 0.25, 0]} receiveShadow>
+          <boxGeometry args={[7.6, 0.5, 6.8]} />
+          <meshStandardMaterial color="#c9b79a" />
+        </mesh>
+        {/* north (back) wall */}
+        <mesh position={[0, 2.5, 3.2]} castShadow receiveShadow>
+          <boxGeometry args={[7.6, 4.5, 0.3]} />
+          <meshStandardMaterial color="#8a4a3a" />
+        </mesh>
+        {/* west wall */}
+        <mesh position={[-3.6, 2.5, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.3, 4.5, 6.8]} />
+          <meshStandardMaterial color="#8a4a3a" />
+        </mesh>
+        {/* east wall */}
+        <mesh position={[3.6, 2.5, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.3, 4.5, 6.8]} />
+          <meshStandardMaterial color="#8a4a3a" />
+        </mesh>
+        {/* south (front) wall, split either side of the doorway */}
+        <mesh position={[-2.1, 2.5, -3.2]} castShadow receiveShadow>
+          <boxGeometry args={[3, 4.5, 0.3]} />
+          <meshStandardMaterial color="#8a4a3a" />
+        </mesh>
+        <mesh position={[2.1, 2.5, -3.2]} castShadow receiveShadow>
+          <boxGeometry args={[3, 4.5, 0.3]} />
+          <meshStandardMaterial color="#8a4a3a" />
+        </mesh>
+        {/* door leaf, swung open against the wall so it never blocks movement */}
+        <mesh position={[-1.55, 1.7, -3.55]} rotation-y={Math.PI / 2.3} castShadow>
+          <boxGeometry args={[1.1, 3.2, 0.1]} />
+          <meshStandardMaterial color="#4a2e22" />
+        </mesh>
+        <mesh position={[0.5, 1.4, -3.15]} castShadow>
+          <sphereGeometry args={[0.05, 8, 8]} />
+          <meshStandardMaterial color="#d4af37" metalness={0.6} roughness={0.3} />
+        </mesh>
+        {/* roof */}
+        <mesh position={[0, 4.9, 0]} castShadow>
+          <boxGeometry args={[8.2, 0.4, 7.4]} />
+          <meshStandardMaterial color="#49413a" />
+        </mesh>
+        {/* a small window light inside */}
+        <pointLight position={[0, 3.3, 0]} intensity={6} color="#ffdca8" distance={7} />
+        {/* simple furniture so the room doesn't feel empty */}
+        <mesh position={[-2.3, 0.55, 2]} receiveShadow>
+          <boxGeometry args={[1.8, 0.15, 2.6]} />
+          <meshStandardMaterial color="#e8e0cc" />
+        </mesh>
       </group>
 
       {/* garden spot: flower bed + watering can */}

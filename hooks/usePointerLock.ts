@@ -29,6 +29,11 @@ export function usePointerLock(domTarget: HTMLElement | null) {
         domTarget.requestPointerLock()?.catch(() => {
           // pointer lock can be refused (e.g. embedded iframe contexts) — movement still works via keyboard
         });
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.().catch(() => {
+            // fullscreen can be refused too — the game still works windowed
+          });
+        }
       }
     };
 

@@ -4,10 +4,11 @@ import type { Locale } from "./i18n";
 export type OutfitColor = "charcoal" | "navy" | "burgundy" | "cream";
 export type HairStyle = "short" | "bald" | "long";
 
-export type ZoneId = "courtyard" | "hall" | "room";
-export type ActivityId = "praying" | "resting" | "gardening" | null;
+export type ZoneId = "courtyard" | "hall" | "room" | "home";
+export type ActivityId = "praying" | "resting" | "gardening" | "sitting" | null;
 
 export type QtTopic = "thanks" | "repent" | "intercede" | "heal";
+export type QtMode = "topic" | "timer";
 
 interface AppState {
   nickname: string;
@@ -21,12 +22,17 @@ interface AppState {
   customizeOpen: boolean;
 
   qtOpen: boolean;
+  qtMode: QtMode | null;
   qtTopic: QtTopic | null;
   qtStep: number;
   qtPauseEnabled: boolean;
+  qtTimerMinutes: number;
+  qtTimerRunning: boolean;
+  qtTimerDone: boolean;
 
   musicOn: boolean;
   visitorsOpen: boolean;
+  liveWorshipOpen: boolean;
 
   setNickname: (name: string) => void;
   setLocale: (locale: Locale) => void;
@@ -41,14 +47,20 @@ interface AppState {
 
   openQt: () => void;
   closeQt: () => void;
+  pickQtMode: (mode: QtMode) => void;
   pickQtTopic: (topic: QtTopic) => void;
   setQtPauseEnabled: (enabled: boolean) => void;
   qtNext: (totalSteps: number) => void;
   qtPrev: () => void;
   resetQt: () => void;
+  setQtTimerMinutes: (minutes: number) => void;
+  startQtTimer: () => void;
+  finishQtTimer: () => void;
+  stopQtTimer: () => void;
 
   toggleMusic: () => void;
   setVisitorsOpen: (open: boolean) => void;
+  setLiveWorshipOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -63,12 +75,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   customizeOpen: false,
 
   qtOpen: false,
+  qtMode: null,
   qtTopic: null,
   qtStep: 0,
   qtPauseEnabled: true,
+  qtTimerMinutes: 5,
+  qtTimerRunning: false,
+  qtTimerDone: false,
 
   musicOn: false,
   visitorsOpen: false,
+  liveWorshipOpen: false,
 
   setNickname: (nickname) => set({ nickname }),
   setLocale: (locale) => set({ locale }),
@@ -84,14 +101,29 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   openQt: () => set({ qtOpen: true, activity: "praying" }),
   closeQt: () =>
-    set({ qtOpen: false, qtTopic: null, qtStep: 0, activity: null }),
+    set({
+      qtOpen: false,
+      qtMode: null,
+      qtTopic: null,
+      qtStep: 0,
+      qtTimerRunning: false,
+      qtTimerDone: false,
+      activity: null,
+    }),
+  pickQtMode: (qtMode) => set({ qtMode }),
   pickQtTopic: (topic) => set({ qtTopic: topic, qtStep: 0 }),
   setQtPauseEnabled: (qtPauseEnabled) => set({ qtPauseEnabled }),
   qtNext: (totalSteps) =>
     set({ qtStep: Math.min(get().qtStep + 1, totalSteps) }),
   qtPrev: () => set({ qtStep: Math.max(get().qtStep - 1, 0) }),
-  resetQt: () => set({ qtTopic: null, qtStep: 0 }),
+  resetQt: () =>
+    set({ qtMode: null, qtTopic: null, qtStep: 0, qtTimerRunning: false, qtTimerDone: false }),
+  setQtTimerMinutes: (qtTimerMinutes) => set({ qtTimerMinutes }),
+  startQtTimer: () => set({ qtTimerRunning: true, qtTimerDone: false }),
+  finishQtTimer: () => set({ qtTimerRunning: false, qtTimerDone: true }),
+  stopQtTimer: () => set({ qtTimerRunning: false, qtTimerDone: true }),
 
   toggleMusic: () => set({ musicOn: !get().musicOn }),
   setVisitorsOpen: (visitorsOpen) => set({ visitorsOpen }),
+  setLiveWorshipOpen: (liveWorshipOpen) => set({ liveWorshipOpen }),
 }));
