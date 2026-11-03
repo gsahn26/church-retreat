@@ -114,6 +114,14 @@ export default function Experience() {
         }
         remotePlayersRef.current = others;
         setRemotePlayers(others);
+        // The 접속자 panel reads this instead of polling Postgres, so people
+        // disappear the moment their presence entry disappears.
+        useAppStore.getState().setOnlineVisitors(
+          players.map((p) => ({
+            sessionId: p.sessionId,
+            nickname: p.nickname || "익명",
+          }))
+        );
       },
       onMove: (state) => {
         remoteTargets.current.set(state.sessionId, {
@@ -130,6 +138,7 @@ export default function Experience() {
     return () => {
       client.leave();
       netRef.current = null;
+      useAppStore.getState().setOnlineVisitors([]);
     };
   }, [look]);
 

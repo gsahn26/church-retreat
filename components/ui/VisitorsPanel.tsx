@@ -21,6 +21,7 @@ export default function VisitorsPanel() {
   const locale = useAppStore((s) => s.locale);
   const nickname = useAppStore((s) => s.nickname);
   const setVisitorsOpen = useAppStore((s) => s.setVisitorsOpen);
+  const onlineVisitors = useAppStore((s) => s.onlineVisitors);
 
   interface OnlineRow {
     session_id: string;
@@ -36,6 +37,21 @@ export default function VisitorsPanel() {
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
+
+  // Live roster from the Realtime channel is authoritative; the Postgres rows
+  // (90s heartbeat window) are only a fallback for the first moment before the
+  // channel reports in. Relying on the table alone left closed tabs listed as
+  // online for well over a minute.
+  const liveRoster = onlineVisitors.length > 0;
+  const rows = liveRoster
+    ? [...onlineVisitors]
+        .sort((a, b) => a.nickname.localeCompare(b.nickname, "ko"))
+        .map((v) => ({ id: v.sessionId, nickname: v.nickname, lastSeen: null as string | null }))
+    : online.map((row) => ({
+        id: row.session_id,
+        nickname: row.nickname,
+        lastSeen: row.last_seen as string | null,
+      }));
 
   useEffect(() => {
     let cancelled = false;
@@ -86,57 +102,66 @@ export default function VisitorsPanel() {
             {error}
           </p>
         )}
-        {!loaded && !error && (
+        {!loaded && !error && !liveRoster && (
           <p className="text-sm text-amber-100/50">{t(locale, "loading")}</p>
         )}
 
-        {loaded && (
+        {(loaded || liveRoster) && (
           <>
             <section className="mb-6">
               <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-200/60">
-                {t(locale, "onlineNow")} ({online.length})
+                {t(locale, "onlineNow")} ({rows.length})
               </h3>
-              {online.length === 0 ? (
+              {rows.length === 0 ? (
                 <p className="text-sm text-amber-100/40">{t(locale, "noOneOnline")}</p>
               ) : (
                 <ul className="flex flex-col gap-1.5">
-                  {online.map((row) => (
+                  {rows.map((row) => (
                     <li
-                      key={row.session_id}
+                      key={row.id}
                       className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm"
                     >
                       <span className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-emerald-400" />
                         {row.nickname}
+                        {row.nickname === nickname && (
+                          <span className="text-xs text-amber-200/50">
+                            ({t(locale, "meLabel")})
+                          </span>
+                        )}
                       </span>
-                      <span className="text-xs text-amber-100/40">
-                        {formatTime(row.last_seen)}
-                      </span>
+                      {row.lastSeen && (
+                        <span className="text-xs text-amber-100/40">
+                          {formatTime(row.lastSeen)}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
             </section>
 
-            <section>
-              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-200/60">
-                {t(locale, "myHistory")} ({nickname})
-              </h3>
-              {history.length === 0 ? (
-                <p className="text-sm text-amber-100/40">{t(locale, "noHistory")}</p>
-              ) : (
-                <ul className="flex flex-col gap-1.5">
-                  {history.map((row) => (
-                    <li
-                      key={row.id}
-                      className="rounded-lg bg-white/5 px-3 py-2 text-sm text-amber-100/80"
-                    >
-                      {formatTime(row.visited_at)}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
+            {loaded && (
+              <section>
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-amber-200/60">
+                  {t(locale, "myHistory")} ({nickname})
+                </h3>
+                {history.length === 0 ? (
+                  <p className="text-sm text-amber-100/40">{t(locale, "noHistory")}</p>
+                ) : (
+                  <ul className="flex flex-col gap-1.5">
+                    {history.map((row) => (
+                      <li
+                        key={row.id}
+                        className="rounded-lg bg-white/5 px-3 py-2 text-sm text-amber-100/80"
+                      >
+                        {formatTime(row.visited_at)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
           </>
         )}
       </div>
