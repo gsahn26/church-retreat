@@ -8,6 +8,7 @@ import ChurchStructures from "./ChurchStructures";
 import { useKeyboard } from "@/hooks/useKeyboard";
 import { usePointerLock } from "@/hooks/usePointerLock";
 import { useAppStore } from "@/lib/store";
+import { touchInput } from "@/lib/touchInput";
 import {
   INTERACTION_POINTS,
   WORLD_BOUNDS,
@@ -59,11 +60,22 @@ export default function Experience() {
         Math.cos(look.current.yaw - Math.PI / 2)
       );
 
+      // keyboard (digital, -1/0/1) combined with the on-screen joystick
+      // (analog, -1..1) so both input methods drive the same movement.
+      const moveZ = THREE.MathUtils.clamp(
+        (k.forward ? 1 : 0) - (k.backward ? 1 : 0) + touchInput.moveZ,
+        -1,
+        1
+      );
+      const moveX = THREE.MathUtils.clamp(
+        (k.right ? 1 : 0) - (k.left ? 1 : 0) + touchInput.moveX,
+        -1,
+        1
+      );
+
       velocity.current.set(0, 0, 0);
-      if (k.forward) velocity.current.add(forwardVec);
-      if (k.backward) velocity.current.sub(forwardVec);
-      if (k.left) velocity.current.sub(rightVec);
-      if (k.right) velocity.current.add(rightVec);
+      velocity.current.addScaledVector(forwardVec, moveZ);
+      velocity.current.addScaledVector(rightVec, moveX);
 
       if (velocity.current.lengthSq() > 0) {
         velocity.current.normalize().multiplyScalar(MOVE_SPEED * delta);
@@ -102,8 +114,9 @@ export default function Experience() {
       setNearbyActivity(closest);
     }
 
-    // interact key (edge-triggered)
-    if (k.interact && !interactPrevRef.current) {
+    // interact key (edge-triggered), keyboard E or the on-screen touch button
+    const interactPressed = k.interact || touchInput.interact;
+    if (interactPressed && !interactPrevRef.current) {
       if (activity === "praying") {
         closeQt();
       } else if (activity) {
@@ -114,7 +127,7 @@ export default function Experience() {
         setActivity(closest);
       }
     }
-    interactPrevRef.current = k.interact;
+    interactPrevRef.current = interactPressed;
 
     // camera orbit around character
     const camOffset = new THREE.Vector3(

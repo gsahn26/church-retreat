@@ -27,7 +27,10 @@ export default function ChurchWorld() {
   }, [nickname]);
 
   return (
-    <div className="relative h-dvh w-dvw overflow-hidden bg-stone-800">
+    <div
+      className="relative h-dvh w-dvw overflow-hidden bg-stone-800"
+      style={{ touchAction: "none" }}
+    >
       <Canvas shadows camera={{ fov: 60, near: 0.1, far: 200 }}>
         <Suspense fallback={null}>
           <Experience />

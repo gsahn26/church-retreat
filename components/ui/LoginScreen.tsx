@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { LOCALES, t } from "@/lib/i18n";
+import { isTouchDevice } from "@/lib/touchInput";
 import LoginBackdrop from "./LoginBackdrop";
 
 export default function LoginScreen() {
@@ -13,6 +14,11 @@ export default function LoginScreen() {
   const enterAndOpenQt = useAppStore((s) => s.enterAndOpenQt);
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
+  const [touch, setTouch] = useState(false);
+
+  useEffect(() => {
+    setTouch(isTouchDevice());
+  }, []);
 
   const validate = () => {
     const trimmed = input.trim();
@@ -106,7 +112,7 @@ export default function LoginScreen() {
         </div>
 
         <p className="text-center text-xs text-amber-100/40">
-          {t(locale, "moveHint")}
+          {t(locale, touch ? "moveHintTouch" : "moveHint")}
         </p>
         <p className="text-center text-[11px] leading-relaxed text-amber-100/30">
           {t(locale, "disclaimer")}

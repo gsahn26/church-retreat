@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { LOCALES, t } from "@/lib/i18n";
+import { isTouchDevice } from "@/lib/touchInput";
 import CustomizePanel from "./CustomizePanel";
 import QTModal from "./QTModal";
 import VisitorsPanel from "./VisitorsPanel";
 import LiveWorshipPanel from "./LiveWorshipPanel";
+import MobileControls from "./MobileControls";
 
 const ZONE_KEY = {
   courtyard: "zoneCourtyard",
@@ -46,6 +48,7 @@ export default function HUD() {
   const setLiveWorshipOpen = useAppStore((s) => s.setLiveWorshipOpen);
 
   const anyModalOpen = customizeOpen || qtOpen || visitorsOpen || liveWorshipOpen;
+  const [touch, setTouch] = useState(false);
 
   // 선택창(모달)이 뜨면 마우스 포인터 잠금을 풀어서 커서가 바로 보이고 클릭할 수 있게 한다.
   useEffect(() => {
@@ -53,6 +56,10 @@ export default function HUD() {
       document.exitPointerLock();
     }
   }, [anyModalOpen]);
+
+  useEffect(() => {
+    setTouch(isTouchDevice());
+  }, []);
 
   return (
     <div className="pointer-events-none absolute inset-0 select-none">
@@ -114,6 +121,8 @@ export default function HUD() {
           ? `${t(locale, ACTIVITY_MESSAGE[activity])} · ${t(locale, "interactStandUp")}`
           : nearbyActivity
           ? t(locale, INTERACT_HINT[nearbyActivity])
+          : touch
+          ? t(locale, "touchHint")
           : t(locale, "exitPointerLock")}
       </div>
 
@@ -121,6 +130,8 @@ export default function HUD() {
       {!activity && (
         <div className="absolute top-1/2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/50" />
       )}
+
+      {touch && !anyModalOpen && !activity && <MobileControls />}
 
       {customizeOpen && <CustomizePanel />}
       {qtOpen && <QTModal />}
