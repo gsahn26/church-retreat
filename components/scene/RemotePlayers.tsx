@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import Character from "./Character";
+import { getFloorY } from "@/lib/world";
 import type { ActivityId, HairStyle, OutfitColor } from "@/lib/store";
 
 export interface RemotePlayer {
@@ -51,16 +52,19 @@ function RemoteAvatar({
     const g = group.current;
     if (!target || !g) return;
 
+    const floorY = getFloorY(target.x, target.z);
+
     if (!placed.current) {
-      g.position.set(target.x, 0, target.z);
+      g.position.set(target.x, floorY, target.z);
       g.rotation.y = target.yaw + Math.PI;
       placed.current = true;
     } else if (Math.hypot(target.x - g.position.x, target.z - g.position.z) > SNAP_DISTANCE) {
-      g.position.set(target.x, 0, target.z);
+      g.position.set(target.x, floorY, target.z);
     } else {
       const t = 1 - Math.pow(SMOOTHING, delta);
       g.position.x += (target.x - g.position.x) * t;
       g.position.z += (target.z - g.position.z) * t;
+      g.position.y = floorY;
     }
 
     // Shortest-path yaw easing, so a 179° -> -179° turn does not spin around.

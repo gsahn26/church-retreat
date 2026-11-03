@@ -12,9 +12,11 @@ const OUTFIT_COLORS: Record<OutfitColor, string> = {
 const HAIR_COLOR = "#2b2520";
 const SKIN_COLOR = "#e8b894";
 // Lifts the (already scale-y-squashed) body up so it reads as sitting on
-// top of a pew seat (~0.42m) rather than crouching on the floor. The group
-// this applies to is squashed by 0.62 at the parent, so divide back out.
-const SIT_LIFT = 0.42 / 0.62;
+// top of a chair's seat cushion (~0.48m above whatever floor the character
+// group's own y is set to - see getFloorY) rather than crouching on the
+// floor. The group this applies to is squashed by 0.62 at the parent, so
+// divide back out.
+const SIT_LIFT = 0.48 / 0.62;
 
 interface CharacterProps {
   outfit: OutfitColor;

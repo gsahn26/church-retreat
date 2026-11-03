@@ -18,6 +18,7 @@ import {
   INTERACTION_POINTS,
   WORLD_BOUNDS,
   distanceXZ,
+  getFloorY,
   getZoneAt,
   isPointInsideSolids,
   resolveCollisions,
@@ -29,13 +30,16 @@ const MOVE_SPEED = 4.2;
 const MAX_MOVE_STEP = 0.08;
 const CAMERA_DISTANCE = 4.5;
 const CAMERA_HEIGHT = 1.4;
-// Keeps the camera from flying up through a ceiling (the sanctuary's is the
-// tallest interior one, at 5.65) or down through the floor when the mouse
-// pushes pitch to its limits - isPointInsideSolids only checks X/Z, so a
-// steep look up/down was the one way the camera could still clip through
-// geometry indoors.
-const CAMERA_MIN_Y = 0.3;
-const CAMERA_MAX_Y = 4.5;
+// Keeps the camera from flying up through a ceiling or down through the
+// floor when the mouse pushes pitch to its limits - isPointInsideSolids
+// only checks X/Z, so a steep look up/down was the one way the camera
+// could still clip through geometry indoors. Relative to the player's own
+// current floor height (getFloorY), not an absolute world Y, since indoor
+// floors sit above the courtyard's y=0 ground. 4.2 stays clear of every
+// room's ceiling (the lowest clearance, the quiet room/house roofs, is
+// ~4.4 above their own floor).
+const CAMERA_MIN_CLEARANCE = 0.3;
+const CAMERA_MAX_CLEARANCE = 4.2;
 
 // Multiplayer tuning. ~4 updates/second stays smooth with interpolation and
 // keeps us far below Supabase's 100 broadcast messages/second free-plan limit.
@@ -293,6 +297,11 @@ export default function Experience() {
       }
     }
 
+    // Every indoor floor platform sits above the courtyard's y=0 ground
+    // (see getFloorY) - without this, standing/sitting indoors used the
+    // courtyard's height, which read as sitting right through the seat.
+    position.current.y = getFloorY(position.current.x, position.current.z);
+
     if (characterRef.current) {
       characterRef.current.position.copy(position.current);
       characterRef.current.rotation.y = look.current.yaw + Math.PI;
@@ -393,7 +402,11 @@ export default function Experience() {
       }
     }
     const desiredCamPos = camTarget.clone().add(camOffset.clone().multiplyScalar(camT));
-    desiredCamPos.y = THREE.MathUtils.clamp(desiredCamPos.y, CAMERA_MIN_Y, CAMERA_MAX_Y);
+    desiredCamPos.y = THREE.MathUtils.clamp(
+      desiredCamPos.y,
+      position.current.y + CAMERA_MIN_CLEARANCE,
+      position.current.y + CAMERA_MAX_CLEARANCE
+    );
     state.camera.position.lerp(desiredCamPos, 1 - Math.pow(0.001, delta));
     state.camera.lookAt(camTarget);
   });

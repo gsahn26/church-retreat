@@ -61,29 +61,35 @@ const PEW_SEAT_COLOR = "#9a7248";
 // through, which is what actually read as a thin "|" sliver.
 const SANCTUARY_FLOOR_Y = 0.6;
 
-// A single, free-standing wooden chair - 4 legs, a seat, a backrest - like
-// an ordinary church chair, not a fixed pew bench.
+// A cinema-style seat: solid side panels (frame + armrest) instead of thin
+// legs, a thick cushioned seat, and a tall reclined backrest cushion.
 function ChurchChair({ x }: { x: number }) {
-  const legXZ: [number, number][] = [
-    [-0.19, -0.19],
-    [0.19, -0.19],
-    [-0.19, 0.19],
-    [0.19, 0.19],
-  ];
+  const seatW = 0.5;
+  const sideX = seatW / 2;
   return (
     <group position={[x, SANCTUARY_FLOOR_Y, 0]}>
-      {legXZ.map(([lx, lz]) => (
-        <mesh key={`${lx}-${lz}`} position={[lx, 0.2, lz]} castShadow>
-          <boxGeometry args={[0.05, 0.4, 0.05]} />
+      {/* side frames, floor to armrest height */}
+      {[-1, 1].map((side) => (
+        <mesh key={`side-${side}`} position={[side * sideX, 0.3, 0.01]} castShadow receiveShadow>
+          <boxGeometry args={[0.06, 0.6, 0.46]} />
           <meshStandardMaterial color={PEW_FRAME_COLOR} />
         </mesh>
       ))}
+      {/* armrest caps, sitting on top of the side frames */}
+      {[-1, 1].map((side) => (
+        <mesh key={`arm-${side}`} position={[side * sideX, 0.48, 0.08]} castShadow>
+          <boxGeometry args={[0.1, 0.05, 0.3]} />
+          <meshStandardMaterial color={PEW_FRAME_COLOR} />
+        </mesh>
+      ))}
+      {/* seat cushion */}
       <mesh position={[0, 0.42, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.44, 0.05, 0.44]} />
+        <boxGeometry args={[seatW - 0.08, 0.12, 0.44]} />
         <meshStandardMaterial color={PEW_SEAT_COLOR} emissive={PEW_SEAT_COLOR} emissiveIntensity={0.08} />
       </mesh>
-      <mesh position={[0, 0.68, 0.19]} rotation-x={-0.1} castShadow receiveShadow>
-        <boxGeometry args={[0.44, 0.52, 0.05]} />
+      {/* backrest cushion, tall and slightly reclined */}
+      <mesh position={[0, 0.78, 0.18]} rotation-x={-0.12} castShadow receiveShadow>
+        <boxGeometry args={[seatW - 0.08, 0.72, 0.1]} />
         <meshStandardMaterial color={PEW_SEAT_COLOR} emissive={PEW_SEAT_COLOR} emissiveIntensity={0.05} />
       </mesh>
     </group>

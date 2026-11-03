@@ -55,6 +55,27 @@ export function getZoneAt(x: number, z: number): ZoneId {
   return "courtyard";
 }
 
+// Every indoor floor platform mesh in ChurchStructures sits above y=0 (the
+// courtyard ground): the sanctuary's is centred at y=0.3 with height 0.6
+// (top at 0.6), the quiet room's and the house's are centred at y=0.25 with
+// height 0.5 (top at 0.5). The player's position has always stayed at y=0
+// everywhere, so standing or sitting indoors actually meant standing/sitting
+// at the *courtyard's* ground height - below the real floor by that much
+// (most visible when sitting: a pew/chair seat built against its own local
+// floor put the character well under the actual seat). Reusing the zone
+// boxes (close enough to each room's real floor footprint) to pick the
+// right height keeps this in one place instead of duplicating room shapes.
+const ZONE_FLOOR_Y: Record<ZoneId, number> = {
+  hall: 0.6,
+  room: 0.5,
+  home: 0.5,
+  courtyard: 0,
+};
+
+export function getFloorY(x: number, z: number): number {
+  return ZONE_FLOOR_Y[getZoneAt(x, z)];
+}
+
 export function distanceXZ(
   a: [number, number, number] | THREE.Vector3,
   b: [number, number, number]
