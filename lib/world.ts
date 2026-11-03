@@ -9,7 +9,16 @@ export interface InteractionPoint {
 }
 
 const PEW_ROWS_Z = [1.8, 0.3, -1.2, -2.7];
-const SANCTUARY_Z = -15;
+export const SANCTUARY_Z = -15;
+
+// the sanctuary's courtyard-facing wall line, and the door set into it
+const SANCTUARY_FRONT_Z = SANCTUARY_Z + 4.4;
+export const SANCTUARY_DOOR = {
+  x: 0,
+  z: SANCTUARY_FRONT_Z,
+  halfWidth: 1.3, // matches the centre aisle between the pews
+  triggerRadius: 4, // opens well before the player can reach the frame
+};
 
 // one sit spot per pew bench (4 rows x 2 pews)
 const PEW_SIT_POINTS: InteractionPoint[] = PEW_ROWS_Z.flatMap((rowZ) => [
@@ -73,10 +82,12 @@ function box(cx: number, cz: number, halfW: number, halfD: number): SolidBox {
 }
 
 const SANCTUARY_SOLIDS: SolidBox[] = [
-  // back + side walls (front, facing the courtyard, is left open as the doorway)
+  // back + side walls, plus the front wall split either side of the door
   box(0, SANCTUARY_Z - 4.4, 5.7, 0.3),
   box(-5.4, SANCTUARY_Z, 0.3, 4.6),
   box(5.4, SANCTUARY_Z, 0.3, 4.6),
+  box(-3.2, SANCTUARY_FRONT_Z, 1.9, 0.3),
+  box(3.2, SANCTUARY_FRONT_Z, 1.9, 0.3),
   // communion table + pulpit, so they read as solid furniture
   box(0, SANCTUARY_Z - 3.3, 1.3, 0.5),
   box(-3.1, SANCTUARY_Z - 3, 0.45, 0.35),

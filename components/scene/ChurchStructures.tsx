@@ -1,4 +1,53 @@
+import { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import * as THREE from "three";
+import { SANCTUARY_DOOR } from "@/lib/world";
+
 const WINDOW_COLORS = ["#7a5ca8", "#3d7a9c", "#c9975a", "#8a3d4a"];
+const DOOR_OPEN_ANGLE = Math.PI / 2;
+// local z offset of the door, inside the sanctuary's own <group position={[0,0,-15]}>
+const DOOR_LOCAL_Z = SANCTUARY_DOOR.z - (-15);
+
+function SanctuaryDoor({
+  playerPosition,
+}: {
+  playerPosition: React.RefObject<THREE.Vector3>;
+}) {
+  const leftHinge = useRef<THREE.Group>(null);
+  const rightHinge = useRef<THREE.Group>(null);
+  const openAmount = useRef(0);
+
+  // Swings open as anyone (entering from the courtyard or leaving the hall)
+  // comes near, and eases shut again once they've moved away.
+  useFrame((_, delta) => {
+    const p = playerPosition.current;
+    const dx = p.x - SANCTUARY_DOOR.x;
+    const dz = p.z - SANCTUARY_DOOR.z;
+    const target = Math.hypot(dx, dz) < SANCTUARY_DOOR.triggerRadius ? 1 : 0;
+    openAmount.current = THREE.MathUtils.damp(openAmount.current, target, 4, delta);
+    const angle = openAmount.current * DOOR_OPEN_ANGLE;
+    if (leftHinge.current) leftHinge.current.rotation.y = -angle;
+    if (rightHinge.current) rightHinge.current.rotation.y = angle;
+  });
+
+  const leafHalf = SANCTUARY_DOOR.halfWidth;
+  return (
+    <>
+      <group ref={leftHinge} position={[-leafHalf, 0, DOOR_LOCAL_Z]}>
+        <mesh position={[leafHalf / 2, 1.7, 0]} castShadow>
+          <boxGeometry args={[leafHalf, 3.4, 0.08]} />
+          <meshStandardMaterial color="#8a5a38" emissive="#2a1b10" emissiveIntensity={0.25} />
+        </mesh>
+      </group>
+      <group ref={rightHinge} position={[leafHalf, 0, DOOR_LOCAL_Z]}>
+        <mesh position={[-leafHalf / 2, 1.7, 0]} castShadow>
+          <boxGeometry args={[leafHalf, 3.4, 0.08]} />
+          <meshStandardMaterial color="#8a5a38" emissive="#2a1b10" emissiveIntensity={0.25} />
+        </mesh>
+      </group>
+    </>
+  );
+}
 
 function StainedWindow({ x, z, rotY }: { x: number; z: number; rotY: number }) {
   return (
@@ -20,7 +69,11 @@ function StainedWindow({ x, z, rotY }: { x: number; z: number; rotY: number }) {
   );
 }
 
-export default function ChurchStructures() {
+export default function ChurchStructures({
+  playerPosition,
+}: {
+  playerPosition: React.RefObject<THREE.Vector3>;
+}) {
   return (
     <group>
       {/* ground */}
@@ -85,6 +138,21 @@ export default function ChurchStructures() {
           <boxGeometry args={[0.4, 5.4, 9]} />
           <meshStandardMaterial color="#efe9db" />
         </mesh>
+        {/* front wall, split either side of the doorway */}
+        <mesh position={[-3.2, 3, DOOR_LOCAL_Z]} castShadow receiveShadow>
+          <boxGeometry args={[3.8, 5.4, 0.6]} />
+          <meshStandardMaterial color="#efe9db" />
+        </mesh>
+        <mesh position={[3.2, 3, DOOR_LOCAL_Z]} castShadow receiveShadow>
+          <boxGeometry args={[3.8, 5.4, 0.6]} />
+          <meshStandardMaterial color="#efe9db" />
+        </mesh>
+        {/* lintel above the door, closing the gap up to the roofline */}
+        <mesh position={[0, 4.4, DOOR_LOCAL_Z]} castShadow receiveShadow>
+          <boxGeometry args={[3, 2, 0.6]} />
+          <meshStandardMaterial color="#efe9db" />
+        </mesh>
+        <SanctuaryDoor playerPosition={playerPosition} />
 
         {/* stained glass windows, both sides */}
         <StainedWindow x={-5.1} z={-2} rotY={Math.PI / 2} />

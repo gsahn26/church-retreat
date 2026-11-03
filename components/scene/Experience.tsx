@@ -349,7 +349,7 @@ export default function Experience() {
         <orthographicCamera attach="shadow-camera" args={[-25, 25, 25, -25]} />
       </directionalLight>
 
-      <ChurchStructures />
+      <ChurchStructures playerPosition={position} />
 
       <RemotePlayers players={remotePlayers} targets={remoteTargets} />
 
