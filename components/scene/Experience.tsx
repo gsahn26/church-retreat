@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { Html } from "@react-three/drei";
 import Character from "./Character";
 import ChurchStructures from "./ChurchStructures";
 import RemotePlayers, { type RemotePlayer, type RemoteTarget } from "./RemotePlayers";
@@ -28,6 +29,13 @@ const MOVE_SPEED = 4.2;
 const MAX_MOVE_STEP = 0.08;
 const CAMERA_DISTANCE = 4.5;
 const CAMERA_HEIGHT = 1.4;
+// Keeps the camera from flying up through a ceiling (the sanctuary's is the
+// tallest interior one, at 5.65) or down through the floor when the mouse
+// pushes pitch to its limits - isPointInsideSolids only checks X/Z, so a
+// steep look up/down was the one way the camera could still clip through
+// geometry indoors.
+const CAMERA_MIN_Y = 0.3;
+const CAMERA_MAX_Y = 4.5;
 
 // Multiplayer tuning. ~4 updates/second stays smooth with interpolation and
 // keeps us far below Supabase's 100 broadcast messages/second free-plan limit.
@@ -49,6 +57,11 @@ export default function Experience() {
   const { look } = usePointerLock(gl.domElement);
 
   const characterRef = useRef<THREE.Group>(null);
+  // Separate group, kept in sync with the character every frame, that just
+  // anchors our own nickname tag the same way RemotePlayers anchors each
+  // remote player's - keeping Character.tsx itself free of any Html/label
+  // concerns so it stays a plain, ref-forwardable mesh component.
+  const nicknameAnchorRef = useRef<THREE.Group>(null);
   const position = useRef(new THREE.Vector3(0, 0, 8));
   const velocity = useRef(new THREE.Vector3());
 
@@ -62,6 +75,7 @@ export default function Experience() {
 
   const outfit = useAppStore((s) => s.outfit);
   const hair = useAppStore((s) => s.hair);
+  const nickname = useAppStore((s) => s.nickname);
   const activity = useAppStore((s) => s.activity);
 
   useEffect(() => {
@@ -250,6 +264,9 @@ export default function Experience() {
       characterRef.current.position.copy(position.current);
       characterRef.current.rotation.y = look.current.yaw + Math.PI;
     }
+    if (nicknameAnchorRef.current) {
+      nicknameAnchorRef.current.position.copy(position.current);
+    }
 
     // --- stream our state to the other visitors -------------------------
     const now = performance.now();
@@ -346,6 +363,7 @@ export default function Experience() {
       }
     }
     const desiredCamPos = camTarget.clone().add(camOffset.clone().multiplyScalar(camT));
+    desiredCamPos.y = THREE.MathUtils.clamp(desiredCamPos.y, CAMERA_MIN_Y, CAMERA_MAX_Y);
     state.camera.position.lerp(desiredCamPos, 1 - Math.pow(0.001, delta));
     state.camera.lookAt(camTarget);
   });
@@ -376,6 +394,22 @@ export default function Experience() {
         lying={activity === "resting"}
         sitting={activity === "sitting"}
       />
+
+      {nickname && activity !== "resting" && (
+        <group ref={nicknameAnchorRef}>
+          <Html
+            position={[0, 2.05, 0]}
+            center
+            distanceFactor={12}
+            zIndexRange={[10, 0]}
+            style={{ pointerEvents: "none", userSelect: "none" }}
+          >
+            <div className="whitespace-nowrap rounded-full bg-black/45 px-2 py-0.5 text-[11px] font-medium text-amber-50 backdrop-blur-sm">
+              {nickname}
+            </div>
+          </Html>
+        </group>
+      )}
     </>
   );
 }
