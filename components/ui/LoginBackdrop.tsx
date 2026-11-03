@@ -48,8 +48,47 @@ export default function LoginBackdrop() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" style={{ perspective: "1200px" }}>
-      {/* deep forest-green church ground wash, echoing 목양교회's palette */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1b2a1c] via-[#223422] to-[#0c130c]" />
+      {/* dusk sky: a warmer band near the horizon (like a photo shot at
+          blue hour) instead of one flat tint top to bottom */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(to bottom, #0a1410 0%, #142218 32%, #24331f 58%, #3a3a22 78%, #0c130c 100%)",
+        }}
+      />
+
+      {/* stars, faint and only in the upper sky */}
+      <svg className="absolute inset-0 h-full w-full opacity-70" aria-hidden="true">
+        <defs>
+          <radialGradient id="starFade" cx="50%" cy="20%" r="75%">
+            <stop offset="0%" stopColor="white" stopOpacity="0.9" />
+            <stop offset="55%" stopColor="white" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        {[
+          [8, 10], [22, 6], [37, 14], [52, 5], [68, 11], [81, 7], [93, 15],
+          [15, 22], [45, 24], [72, 20], [60, 28], [30, 30], [88, 26],
+        ].map(([x, y], i) => (
+          <circle
+            key={i}
+            cx={`${x}%`}
+            cy={`${y}%`}
+            r={i % 3 === 0 ? 1.6 : 1}
+            fill="url(#starFade)"
+            style={{ animation: `star-twinkle ${3 + (i % 4)}s ease-in-out ${i * 0.3}s infinite` }}
+          />
+        ))}
+      </svg>
+
+      {/* subtle film grain, so flat vector shading reads more like a photo */}
+      <svg className="absolute inset-0 h-full w-full opacity-[0.05] mix-blend-overlay" aria-hidden="true">
+        <filter id="grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#grain)" />
+      </svg>
 
       {/* breathing warm glow, like candlelight through a window */}
       <div
@@ -106,14 +145,44 @@ export default function LoginBackdrop() {
         </div>
 
         <svg
-          className="absolute bottom-0 left-1/2 h-[55vh] w-auto -translate-x-1/2 opacity-90"
+          className="absolute bottom-0 left-1/2 h-[55vh] w-auto -translate-x-1/2 opacity-95"
           viewBox="0 0 400 300"
           fill="none"
           aria-hidden="true"
         >
-          {/* gabled roofline */}
-          <path d="M20 300 L20 140 L200 20 L380 140 L380 300 Z" fill="#12210f" />
-          {/* arched window */}
+          <defs>
+            {/* roof/facade lit faintly from the upper-left, like moonlight
+                grazing the ridge, instead of one flat silhouette fill */}
+            <linearGradient id="roofShade" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#2a4024" />
+              <stop offset="45%" stopColor="#16260f" />
+              <stop offset="100%" stopColor="#0a1408" />
+            </linearGradient>
+            <linearGradient id="sideShade" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#0a1408" />
+              <stop offset="100%" stopColor="#060b05" />
+            </linearGradient>
+            <pattern id="brick" width="26" height="14" patternUnits="userSpaceOnUse" patternTransform="translate(0,0)">
+              <rect width="26" height="14" fill="transparent" />
+              <path d="M0 7 H26 M13 0 V7 M0 7 V14 M26 7 V14" stroke="#000" strokeOpacity="0.25" strokeWidth="1" />
+            </pattern>
+          </defs>
+
+          {/* ground-contact shadow, so the building feels planted rather than floating */}
+          <ellipse cx="200" cy="300" rx="190" ry="14" fill="#000" opacity="0.35" />
+          {/* stone steps up to the door */}
+          <rect x="165" y="286" width="70" height="8" fill="#1a2a16" />
+          <rect x="172" y="278" width="56" height="8" fill="#20331b" />
+
+          {/* narrow side wall sliver for a 3D read, not a flat cutout */}
+          <path d="M380 140 L398 155 L398 300 L380 300 Z" fill="url(#sideShade)" />
+
+          {/* gabled roofline + facade */}
+          <path d="M20 300 L20 140 L200 20 L380 140 L380 300 Z" fill="url(#roofShade)" />
+          <path d="M20 300 L20 140 L200 20 L380 140 L380 300 Z" fill="url(#brick)" />
+          <path d="M20 300 L20 140 L200 20 L380 140 L380 300 Z" stroke="#0a1408" strokeWidth="2" opacity="0.6" />
+
+          {/* arched window, lit warmly from inside */}
           <path
             d="M200 60 C170 60 150 85 150 120 L150 190 L250 190 L250 120 C250 85 230 60 200 60 Z"
             fill="rgba(255,205,120,0.22)"
@@ -125,13 +194,44 @@ export default function LoginBackdrop() {
           />
           <line x1="200" y1="60" x2="200" y2="190" stroke="#3f5c37" strokeWidth="3" />
           <line x1="150" y1="130" x2="250" y2="130" stroke="#3f5c37" strokeWidth="3" />
+
+          {/* arched doorway at the base, matching the window's shape language */}
+          <path
+            d="M172 300 L172 250 C172 230 184 218 200 218 C216 218 228 230 228 250 L228 300 Z"
+            fill="#05080a"
+            opacity="0.85"
+          />
+          <path
+            d="M172 300 L172 250 C172 230 184 218 200 218 C216 218 228 230 228 250 L228 300 Z"
+            stroke="#3f5c37"
+            strokeWidth="3"
+          />
+
           {/* cross on the roof */}
           <rect x="195" y="-30" width="10" height="55" fill="#e8dcae" />
           <rect x="175" y="-12" width="50" height="10" fill="#e8dcae" />
         </svg>
       </div>
 
+      {/* vignette, like a camera lens falloff, to frame the shot */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%)",
+        }}
+      />
+
       <style jsx>{`
+        @keyframes star-twinkle {
+          0%,
+          100% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
         @keyframes backdrop-breathe {
           0%,
           100% {
