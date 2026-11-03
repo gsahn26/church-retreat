@@ -33,7 +33,7 @@ interface ZoneBox {
 const ZONE_BOXES: ZoneBox[] = [
   { id: "hall", min: [-5, -20], max: [5, -11] },
   { id: "room", min: [7.5, -7.5], max: [12.5, -2.5] },
-  { id: "home", min: [12, 5], max: [20, 13] },
+  { id: "home", min: [12, 5.8], max: [20, 13] },
   { id: "courtyard", min: [-20, -11], max: [20, 20] },
 ];
 
@@ -119,11 +119,27 @@ export function resolveCollisions(pos: THREE.Vector3) {
     const dx = pos.x - closestX;
     const dz = pos.z - closestZ;
     const distSq = dx * dx + dz * dz;
-    if (distSq < CHARACTER_RADIUS * CHARACTER_RADIUS) {
-      const dist = Math.sqrt(distSq) || 0.0001;
+
+    if (distSq > 0) {
+      if (distSq >= CHARACTER_RADIUS * CHARACTER_RADIUS) continue;
+      const dist = Math.sqrt(distSq);
       const overlap = CHARACTER_RADIUS - dist;
       pos.x += (dx / dist) * overlap;
       pos.z += (dz / dist) * overlap;
+      continue;
     }
+
+    // The centre ended up inside the box (long frame, teleport, edge case).
+    // The closest point is the centre itself, so there is no push direction:
+    // eject along the shallowest axis instead of leaving the player inside.
+    const outWest = pos.x - b.minX + CHARACTER_RADIUS;
+    const outEast = b.maxX - pos.x + CHARACTER_RADIUS;
+    const outNorth = pos.z - b.minZ + CHARACTER_RADIUS;
+    const outSouth = b.maxZ - pos.z + CHARACTER_RADIUS;
+    const smallest = Math.min(outWest, outEast, outNorth, outSouth);
+    if (smallest === outWest) pos.x = b.minX - CHARACTER_RADIUS;
+    else if (smallest === outEast) pos.x = b.maxX + CHARACTER_RADIUS;
+    else if (smallest === outNorth) pos.z = b.minZ - CHARACTER_RADIUS;
+    else pos.z = b.maxZ + CHARACTER_RADIUS;
   }
 }
